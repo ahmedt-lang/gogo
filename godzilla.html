@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Godzilla Message</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0a0a0f;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
+
+    /* === PARTICLES === */
+    .particles {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .particle {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: #00ff88;
+      border-radius: 50%;
+      animation: float linear infinite;
+      opacity: 0;
+    }
+
+    @keyframes float {
+      0%   { transform: translateY(100vh) translateX(0); opacity: 0; }
+      10%  { opacity: 0.6; }
+      90%  { opacity: 0.3; }
+      100% { transform: translateY(-10vh) translateX(30px); opacity: 0; }
+    }
+
+    /* === GODZILLA BUTTON === */
+    .godzilla-wrapper {
+      position: relative;
+      z-index: 10;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .godzilla-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      outline: none;
+    }
+
+    .godzilla-svg-container {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 35%, #1a2a1a, #050a05);
+      border: 3px solid #1a3a1a;
+      box-shadow:
+        0 0 30px rgba(0,200,60,0.15),
+        0 0 60px rgba(0,200,60,0.05),
+        inset 0 0 30px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+
+    .godzilla-svg-container:hover {
+      transform: scale(1.06);
+      border-color: #00ff88;
+      box-shadow:
+        0 0 50px rgba(0,255,136,0.3),
+        0 0 100px rgba(0,255,136,0.1),
+        inset 0 0 30px rgba(0,0,0,0.5);
+    }
+
+    .godzilla-svg-container:active {
+      transform: scale(0.94);
+    }
+
+    .godzilla-label {
+      color: #3a5a3a;
+      font-size: 13px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      font-weight: 600;
+      transition: color 0.3s ease;
+    }
+
+    .godzilla-btn:hover .godzilla-label {
+      color: #00ff88;
+    }
+
+    /* Pulse ring */
+    .pulse-ring {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 2px solid rgba(0, 255, 136, 0.4);
+      animation: pulse-ring 2.5s ease-out infinite;
+      pointer-events: none;
+    }
+
+    .pulse-ring:nth-child(2) { animation-delay: 0.8s; }
+    .pulse-ring:nth-child(3) { animation-delay: 1.6s; }
+
+    @keyframes pulse-ring {
+      0%   { transform: scale(1);   opacity: 0.6; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+
+    /* === GODZILLA SVG === */
+    .godz-svg {
+      width: 120px;
+      height: 120px;
+      filter: drop-shadow(0 0 10px rgba(0,255,100,0.3));
+      transition: filter 0.3s ease;
+    }
+
+    .godzilla-btn:hover .godz-svg {
+      filter: drop-shadow(0 0 20px rgba(0,255,100,0.7)) brightness(1.2);
+    }
+
+    /* === MESSAGE OVERLAY === */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      pointer-events: none;
+      transition: background 0.5s ease;
+    }
+
+    .overlay.active {
+      background: rgba(0,0,0,0.85);
+      pointer-events: all;
+    }
+
+    /* === MESSAGE CARD === */
+    .message-card {
+      position: relative;
+      max-width: 700px;
+      width: 90%;
+      padding: 50px 40px;
+      background: linear-gradient(135deg, #0a1a0a, #050f05);
+      border: 1px solid #1a3a1a;
+      border-radius: 4px;
+      text-align: center;
+      opacity: 0;
+      transform: scale(0.7) translateY(40px);
+      transition: none;
+    }
+
+    .message-card.enter {
+      animation: card-enter 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    .message-card.exit {
+      animation: card-exit 0.4s ease-in forwards;
+    }
+
+    @keyframes card-enter {
+      0%   { opacity: 0; transform: scale(0.7) translateY(40px); }
+      60%  { opacity: 1; transform: scale(1.03) translateY(-5px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    @keyframes card-exit {
+      0%   { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(0.8) translateY(20px); }
+    }
+
+    /* Corner decorations */
+    .message-card::before,
+    .message-card::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-color: #00ff88;
+      border-style: solid;
+    }
+    .message-card::before { top: 12px; left: 12px;  border-width: 2px 0 0 2px; }
+    .message-card::after  { bottom: 12px; right: 12px; border-width: 0 2px 2px 0; }
+
+    /* Scan line effect */
+    .message-card .scan-line {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #00ff88, transparent);
+      animation: scan 2s ease-in-out;
+      pointer-events: none;
+    }
+
+    @keyframes scan {
+      0%   { top: 0;    opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+
+    /* === TITLE === */
+    .card-title {
+      font-size: 11px;
+      letter-spacing: 6px;
+      color: #00ff88;
+      text-transform: uppercase;
+      margin-bottom: 30px;
+      opacity: 0;
+      animation: none;
+    }
+
+    .card-title.show {
+      animation: fade-up 0.5s ease forwards 0.3s;
+    }
+
+    /* === MESSAGE TEXT === */
+    .message-text {
+      font-size: clamp(20px, 4vw, 32px);
+      font-weight: 700;
+      color: #e8e8e8;
+      line-height: 1.5;
+      letter-spacing: 1px;
+    }
+
+    .message-text .word {
+      display: inline-block;
+      overflow: hidden;
+      margin: 0 4px;
+    }
+
+    .message-text .word span {
+      display: inline-block;
+      transform: translateY(100%);
+      opacity: 0;
+    }
+
+    .message-text .word span.reveal {
+      animation: word-reveal 0.5s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
+    }
+
+    @keyframes word-reveal {
+      0%   { transform: translateY(100%); opacity: 0; }
+      100% { transform: translateY(0);    opacity: 1; }
+    }
+
+    /* Highlight specific words */
+    .highlight {
+      color: #00ff88;
+      text-shadow: 0 0 20px rgba(0,255,136,0.5);
+    }
+
+    .danger {
+      color: #ff4444;
+      text-shadow: 0 0 20px rgba(255,68,68,0.5);
+    }
+
+    /* === CLOSE HINT === */
+    .close-hint {
+      margin-top: 35px;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: #2a3a2a;
+      text-transform: uppercase;
+      opacity: 0;
+      animation: none;
+    }
+
+    .close-hint.show {
+      animation: fade-up 0.5s ease forwards 1.8s;
+    }
+
+    /* === GLITCH on card title === */
+    @keyframes glitch {
+      0%, 100% { text-shadow: 0 0 10px #00ff88; clip-path: none; transform: none; }
+      20% { text-shadow: -3px 0 #ff0044, 3px 0 #00ff88; transform: translateX(-2px); }
+      40% { text-shadow: 3px 0 #ff0044, -3px 0 #00ff88; transform: translateX(2px); }
+      60% { text-shadow: -1px 0 #00ff88; transform: none; }
+    }
+
+    .card-title.glitch {
+      animation: fade-up 0.5s ease forwards 0.3s, glitch 0.3s ease 1s;
+    }
+
+    /* === SCREEN SHAKE === */
+    @keyframes shake {
+      0%, 100% { transform: translate(0,0) rotate(0deg); }
+      10% { transform: translate(-4px, -2px) rotate(-0.5deg); }
+      20% { transform: translate(4px, 2px) rotate(0.5deg); }
+      30% { transform: translate(-3px, 3px) rotate(-0.3deg); }
+      40% { transform: translate(3px, -3px) rotate(0.3deg); }
+      50% { transform: translate(-2px, 2px) rotate(0deg); }
+      60% { transform: translate(2px, -1px); }
+      70% { transform: translate(-1px, 3px); }
+      80% { transform: translate(1px, 1px); }
+      90% { transform: translate(-1px, -1px); }
+    }
+
+    body.shake {
+      animation: shake 0.4s ease;
+    }
+
+    /* === FLASH === */
+    .flash {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,255,136,0.08);
+      z-index: 999;
+      pointer-events: none;
+      opacity: 0;
+      animation: flash-anim 0.6s ease forwards;
+    }
+
+    @keyframes flash-anim {
+      0%   { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    @keyframes fade-up {
+      0%   { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background particles -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Godzilla Button -->
+  <div class="godzilla-wrapper">
+    <button class="godzilla-btn" id="godzBtn" aria-label="Cliquez pour voir le message de Godzilla">
+      <div class="godzilla-svg-container">
+        <div class="pulse-ring"></div>
+        <div class="pulse-ring"></div>
+        <div class="pulse-ring"></div>
+        <!-- Godzilla SVG -->
+        <svg class="godz-svg" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" fill="none">
+          <!-- Body -->
+          <ellipse cx="50" cy="80" rx="22" ry="28" fill="#1a3a1a" stroke="#00cc55" stroke-width="1.5"/>
+          <!-- Tail -->
+          <path d="M72 95 Q88 105 92 115 Q85 110 78 108 Q82 100 72 95Z" fill="#1a3a1a" stroke="#00cc55" stroke-width="1.2"/>
+          <path d="M68 100 Q80 108 84 118 Q78 114 72 112 Q76 105 68 100Z" fill="#153215" stroke="#00cc55" stroke-width="1"/>
+          <!-- Legs -->
+          <rect x="34" y="100" width="12" height="18" rx="6" fill="#1a3a1a" stroke="#00cc55" stroke-width="1.2"/>
+          <rect x="54" y="100" width="12" height="18" rx="6" fill="#1a3a1a" stroke="#00cc55" stroke-width="1.2"/>
+          <!-- Feet -->
+          <ellipse cx="40" cy="118" rx="9" ry="4" fill="#0d220d" stroke="#00cc55" stroke-width="1"/>
+          <ellipse cx="60" cy="118" rx="9" ry="4" fill="#0d220d" stroke="#00cc55" stroke-width="1"/>
+          <!-- Toes -->
+          <line x1="33" y1="119" x2="30" y2="122" stroke="#00cc55" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="40" y1="120" x2="40" y2="123" stroke="#00cc55" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="47" y1="119" x2="50" y2="122" stroke="#00cc55" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="53" y1="119" x2="50" y2="122" stroke="#00cc55" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="60" y1="120" x2="60" y2="123" stroke="#00cc55" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="67" y1="119" x2="70" y2="122" stroke="#00cc55" stroke-width="1.2" stroke-linecap="round"/>
+          <!-- Arms -->
+          <path d="M30 72 Q18 80 16 90 Q22 86 28 84 Q26 76 30 72Z" fill="#1a3a1a" stroke="#00cc55" stroke-width="1.2"/>
+          <path d="M70 72 Q82 80 84 90 Q78 86 72 84 Q74 76 70 72Z" fill="#1a3a1a" stroke="#00cc55" stroke-width="1.2"/>
+          <!-- Claws -->
+          <line x1="17" y1="90" x2="13" y2="93" stroke="#00cc55" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="20" y1="92" x2="17" y2="96" stroke="#00cc55" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="83" y1="90" x2="87" y2="93" stroke="#00cc55" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="80" y1="92" x2="83" y2="96" stroke="#00cc55" stroke-width="1.2" stroke-linecap="round"/>
+          <!-- Neck -->
+          <rect x="43" y="48" width="14" height="16" rx="7" fill="#1a3a1a" stroke="#00cc55" stroke-width="1.2"/>
+          <!-- Head -->
+          <ellipse cx="50" cy="38" rx="18" ry="16" fill="#1a3a1a" stroke="#00cc55" stroke-width="1.5"/>
+          <!-- Snout -->
+          <path d="M36 42 Q30 46 32 52 Q38 48 44 46Z" fill="#0d220d" stroke="#00cc55" stroke-width="1.2"/>
+          <!-- Jaw line -->
+          <path d="M32 50 Q38 56 50 57 Q62 56 68 50" stroke="#00cc55" stroke-width="1" fill="none"/>
+          <!-- Teeth -->
+          <polygon points="36,52 38,48 40,52" fill="#ccffcc" opacity="0.8"/>
+          <polygon points="42,54 44,50 46,54" fill="#ccffcc" opacity="0.6"/>
+          <polygon points="60,52 62,48 64,52" fill="#ccffcc" opacity="0.8"/>
+          <!-- Eyes -->
+          <ellipse cx="41" cy="32" rx="5" ry="5" fill="#001a00" stroke="#00ff88" stroke-width="1.5"/>
+          <ellipse cx="59" cy="32" rx="5" ry="5" fill="#001a00" stroke="#00ff88" stroke-width="1.5"/>
+          <circle cx="42" cy="31" r="2.5" fill="#00ff44"/>
+          <circle cx="60" cy="31" r="2.5" fill="#00ff44"/>
+          <circle cx="43" cy="30" r="1" fill="#ffffff" opacity="0.8"/>
+          <circle cx="61" cy="30" r="1" fill="#ffffff" opacity="0.8"/>
+          <!-- Pupils -->
+          <ellipse cx="42" cy="32" rx="1" ry="2" fill="#001a00"/>
+          <ellipse cx="60" cy="32" rx="1" ry="2" fill="#001a00"/>
+          <!-- Spines on back -->
+          <path d="M44 55 L40 42 L46 52Z" fill="#00cc55" opacity="0.7"/>
+          <path d="M50 53 L50 36 L53 52Z" fill="#00cc55" opacity="0.9"/>
+          <path d="M56 55 L60 42 L54 52Z" fill="#00cc55" opacity="0.7"/>
+          <!-- Dorsal spines -->
+          <path d="M44 65 L40 50 L46 63Z" fill="#00aa44" opacity="0.5"/>
+          <path d="M50 64 L50 48 L53 63Z" fill="#00aa44" opacity="0.6"/>
+          <path d="M56 65 L60 50 L54 63Z" fill="#00aa44" opacity="0.5"/>
+          <!-- Nostrils -->
+          <ellipse cx="34" cy="47" rx="1.5" ry="1" fill="#003300" stroke="#00cc55" stroke-width="0.5"/>
+          <ellipse cx="38" cy="48" rx="1.5" ry="1" fill="#003300" stroke="#00cc55" stroke-width="0.5"/>
+          <!-- Chest scales -->
+          <path d="M42 72 Q50 68 58 72 Q50 76 42 72Z" fill="#0d220d" stroke="#00cc55" stroke-width="0.8"/>
+          <path d="M40 80 Q50 76 60 80 Q50 84 40 80Z" fill="#0d220d" stroke="#00cc55" stroke-width="0.8"/>
+          <!-- Glow eyes effect -->
+          <circle cx="42" cy="31" r="4" fill="none" stroke="#00ff88" stroke-width="0.5" opacity="0.5">
+            <animate attributeName="r" values="4;6;4" dur="2s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.5;0.1;0.5" dur="2s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="60" cy="31" r="4" fill="none" stroke="#00ff88" stroke-width="0.5" opacity="0.5">
+            <animate attributeName="r" values="4;6;4" dur="2s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.5;0.1;0.5" dur="2s" repeatCount="indefinite"/>
+          </circle>
+        </svg>
+      </div>
+      <span class="godzilla-label">Click to awaken</span>
+    </button>
+  </div>
+
+  <!-- Message Overlay -->
+  <div class="overlay" id="overlay">
+    <div class="message-card" id="messageCard">
+      <div class="scan-line" id="scanLine"></div>
+      <div class="card-title" id="cardTitle">⚠ Message de Godzilla ⚠</div>
+      <div class="message-text" id="messageText"></div>
+      <div class="close-hint" id="closeHint">— Cliquer pour fermer —</div>
+    </div>
+  </div>
+
+  <script>
+    // === PARTICLES ===
+    const particlesContainer = document.getElementById('particles');
+    for (let i = 0; i < 40; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = Math.random() * 100 + 'vw';
+      p.style.animationDuration = (6 + Math.random() * 10) + 's';
+      p.style.animationDelay = (Math.random() * 8) + 's';
+      p.style.width = p.style.height = (1 + Math.random() * 3) + 'px';
+      p.style.opacity = Math.random() * 0.6;
+      // Some red particles for drama
+      if (Math.random() > 0.8) p.style.background = '#ff4444';
+      particlesContainer.appendChild(p);
+    }
+
+    // === MESSAGE DATA ===
+    // Words with optional class for styling
+    const messageWords = [
+      { text: 'Gogo',    cls: 'highlight' },
+      { text: 'mogo',    cls: '' },
+      { text: 'ba3d',    cls: '' },
+      { text: 'mn',      cls: '' },
+      { text: "l7chich", cls: 'danger' },
+      { text: 'wla',     cls: '' },
+      { text: "ghan7wik",cls: 'danger' },
+    ];
+
+    // === ELEMENTS ===
+    const btn         = document.getElementById('godzBtn');
+    const overlay     = document.getElementById('overlay');
+    const card        = document.getElementById('messageCard');
+    const cardTitle   = document.getElementById('cardTitle');
+    const messageText = document.getElementById('messageText');
+    const closeHint   = document.getElementById('closeHint');
+    const scanLine    = document.getElementById('scanLine');
+
+    let isOpen = false;
+
+    // Build word spans
+    messageWords.forEach((w, i) => {
+      const wordDiv = document.createElement('span');
+      wordDiv.className = 'word';
+      if (w.cls) wordDiv.classList.add(w.cls);
+      const inner = document.createElement('span');
+      inner.textContent = w.text;
+      wordDiv.appendChild(inner);
+      messageText.appendChild(wordDiv);
+      if (i < messageWords.length - 1) {
+        messageText.appendChild(document.createTextNode(' '));
+      }
+    });
+
+    function openMessage() {
+      if (isOpen) return;
+      isOpen = true;
+
+      // Screen shake
+      document.body.classList.add('shake');
+      setTimeout(() => document.body.classList.remove('shake'), 400);
+
+      // Flash
+      const flash = document.createElement('div');
+      flash.className = 'flash';
+      document.body.appendChild(flash);
+      setTimeout(() => flash.remove(), 600);
+
+      // Show overlay
+      overlay.classList.add('active');
+
+      // Reset card
+      card.classList.remove('exit');
+      card.style.opacity = '';
+      card.style.transform = '';
+
+      // Animate card in
+      requestAnimationFrame(() => {
+        card.classList.add('enter');
+      });
+
+      // Re-trigger scan line
+      scanLine.style.animation = 'none';
+      void scanLine.offsetHeight;
+      scanLine.style.animation = '';
+
+      // Title
+      cardTitle.classList.remove('show', 'glitch');
+      void cardTitle.offsetHeight;
+      cardTitle.classList.add('show', 'glitch');
+
+      // Animate words
+      const wordInners = messageText.querySelectorAll('.word span');
+      wordInners.forEach((span, i) => {
+        span.classList.remove('reveal');
+        span.style.transform = 'translateY(100%)';
+        span.style.opacity = '0';
+      });
+
+      wordInners.forEach((span, i) => {
+        setTimeout(() => {
+          span.classList.add('reveal');
+        }, 600 + i * 120);
+      });
+
+      // Close hint
+      closeHint.classList.remove('show');
+      void closeHint.offsetHeight;
+      closeHint.classList.add('show');
+    }
+
+    function closeMessage() {
+      if (!isOpen) return;
+
+      card.classList.remove('enter');
+      card.classList.add('exit');
+
+      setTimeout(() => {
+        overlay.classList.remove('active');
+        card.classList.remove('exit');
+        isOpen = false;
+      }, 400);
+    }
+
+    btn.addEventListener('click', openMessage);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay || e.target === card ||
+          card.contains(e.target)) {
+        closeMessage();
+      }
+    });
+
+    // Keyboard support
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isOpen) closeMessage();
+      if ((e.key === 'Enter' || e.key === ' ') && !isOpen) {
+        e.preventDefault();
+        openMessage();
+      }
+    });
+  </script>
+</body>
+</html>
